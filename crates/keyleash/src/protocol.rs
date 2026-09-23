@@ -24,6 +24,7 @@ pub struct RequestFrame {
 #[serde(deny_unknown_fields)]
 pub enum Response {
     Value { value: String },
+    Error { code: ErrorCode },
 }
 
 #[derive(Serialize, Deserialize)]
@@ -33,9 +34,16 @@ pub struct ResponseFrame {
     pub(crate) response: Response,
 }
 
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+#[serde(deny_unknown_fields)]
+pub enum ErrorCode {
+    UnsupportedVersion,
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{PROTOCOL_VERSION, Request, RequestFrame, Response, ResponseFrame};
+    use super::{ErrorCode, PROTOCOL_VERSION, Request, RequestFrame, Response, ResponseFrame};
     use crate::name::SecretName;
 
     #[test]
@@ -82,6 +90,21 @@ mod tests {
         assert_eq!(
             serde_json::to_string(&frame).unwrap(),
             r#"{"version":1,"response":{"type":"value","value":"postgres://example"}}"#
+        );
+    }
+
+    #[test]
+    fn error_response_names_the_unsupported_version_code() {
+        let frame = ResponseFrame {
+            version: PROTOCOL_VERSION,
+            response: Response::Error {
+                code: ErrorCode::UnsupportedVersion,
+            },
+        };
+
+        assert_eq!(
+            serde_json::to_string(&frame).unwrap(),
+            r#"{"version":1,"response":{"type":"error","code":"unsupported_version"}}"#
         );
     }
 }
