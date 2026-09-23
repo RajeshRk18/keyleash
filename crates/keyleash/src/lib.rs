@@ -3,3 +3,4 @@ compile_error!("keyleash currently supports Linux only");
 
 pub mod name;
 pub mod process;
+pub mod protocol;
