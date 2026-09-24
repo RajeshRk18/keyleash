@@ -74,7 +74,7 @@ pub struct ResponseFrame {
     pub(crate) response: Response,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 #[serde(deny_unknown_fields)]
 pub enum ErrorCode {
