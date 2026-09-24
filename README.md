@@ -11,7 +11,7 @@ Secrets often enter local workflows through `.env` files or shell environment va
 
 Coding agents make this risk harder to contain. They often run with the same environment and filesystem access as the developer shell. A prompt injection, compromised dependency, or mistaken tool call can make an agent print a key, write it into a file, add it to a commit, or send it over the network.
 
-Keyleash is intended to keep managed secrets out of the process environment. It launches a process with a private capability channel. In the planned request flow, the process would ask for each secret by name and session policy would decide whether to allow it. This would narrow which managed secrets an agent or tool could obtain.
+Keyleash is intended to keep managed secrets out of the process environment. Its library launches a process with a private capability channel. The child can request a secret by name, and session policy decides whether to allow it. Named recipes and persistent secret storage are still planned.
 
 ## Planned model
 
@@ -38,7 +38,7 @@ The channel is an unnamed Unix `SOCK_SEQPACKET` pair. Keyleash keeps one endpoin
 
 ## Current status
 
-The process-bound transport foundation is implemented.
+The process transport and one-request broker flow are implemented as a Rust library.
 
 - Linux-only Rust workspace
 - Unnamed Unix `SOCK_SEQPACKET` channel
@@ -46,12 +46,17 @@ The process-bound transport foundation is implemented.
 - `CLOEXEC` safe descriptor handoff
 - One-packet send and receive
 - EOF-driven channel lifecycle
+- Validated secret names and versioned JSON frames
+- A 64 KiB frame limit with truncated packet detection
+- Pure allow and deny policy decisions
+- Child client and parent broker session for one request at a time
 - Integration tests for process and descriptor ownership
+- Integration tests for allowed, denied, malformed, oversized, and version-error requests
 - Manual syscall-level verification with `strace`
 
-The CLI, request protocol, policy engine, recipes, secret storage, audit records, and release packaging are not implemented yet.
+The public CLI, named recipes, persistent secret storage, audit records, session deadlines, and release packaging are not implemented yet.
 
-The next milestone adds the first request flow with versioned frames and pure policy decisions.
+The next milestone adds named recipe configuration and a public CLI.
 
 ## Intended security model
 
@@ -75,13 +80,11 @@ Closing the capability channel prevents future requests. It cannot revoke plaint
 
 ## Roadmap
 
-1. Versioned request and response frames
-2. Pure allow and deny policy evaluation
-3. Named recipe configuration
-4. Encrypted local secret storage
-5. Session deadlines and lifecycle hardening
-6. Durable audit records
-7. Release packaging and maintenance checks
+1. Named recipe configuration and CLI
+2. Encrypted local secret storage
+3. Session deadlines and lifecycle hardening
+4. Durable audit records
+5. Release packaging and maintenance checks
 
 ## Development
 
